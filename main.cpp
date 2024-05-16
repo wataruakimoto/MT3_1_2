@@ -2,6 +2,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <cassert>
+#include <imgui.h>
 
 struct Vector3 {
 	float x;
@@ -30,6 +31,75 @@ Matrix4x4 Multiply(const Matrix4x4& m1, const Matrix4x4& m2) {
 	}
 
 	return resultMultiply;
+}
+
+// 逆行列
+Matrix4x4 Inverse(const Matrix4x4& m) {
+
+	float determinant =
+		m.m[0][0] * m.m[1][1] * m.m[2][2] * m.m[3][3] + m.m[0][0] * m.m[1][2] * m.m[2][3] * m.m[3][1] + m.m[0][0] * m.m[1][3] * m.m[2][1] * m.m[3][2]
+		- m.m[0][0] * m.m[1][3] * m.m[2][2] * m.m[3][1] - m.m[0][0] * m.m[1][2] * m.m[2][1] * m.m[3][3] - m.m[0][0] * m.m[1][1] * m.m[2][3] * m.m[3][2]
+		- m.m[0][1] * m.m[1][0] * m.m[2][2] * m.m[3][3] - m.m[0][2] * m.m[1][0] * m.m[2][3] * m.m[3][1] - m.m[0][3] * m.m[1][0] * m.m[2][1] * m.m[3][2]
+		+ m.m[0][3] * m.m[1][0] * m.m[2][2] * m.m[3][1] + m.m[0][2] * m.m[1][0] * m.m[2][1] * m.m[3][3] + m.m[0][1] * m.m[1][0] * m.m[2][3] * m.m[3][2]
+		+ m.m[0][1] * m.m[1][2] * m.m[2][0] * m.m[3][3] + m.m[0][2] * m.m[1][3] * m.m[2][0] * m.m[3][1] + m.m[0][3] * m.m[1][1] * m.m[2][0] * m.m[3][2]
+		- m.m[0][3] * m.m[1][2] * m.m[2][0] * m.m[3][1] - m.m[0][2] * m.m[1][1] * m.m[2][0] * m.m[3][3] - m.m[0][1] * m.m[1][3] * m.m[2][0] * m.m[3][2]
+		- m.m[0][1] * m.m[1][2] * m.m[2][3] * m.m[3][0] - m.m[0][2] * m.m[1][3] * m.m[2][1] * m.m[3][0] - m.m[0][3] * m.m[1][1] * m.m[2][2] * m.m[3][0]
+		+ m.m[0][3] * m.m[1][2] * m.m[2][1] * m.m[3][0] + m.m[0][2] * m.m[1][1] * m.m[2][3] * m.m[3][0] + m.m[0][1] * m.m[1][3] * m.m[2][2] * m.m[3][0];
+
+	Matrix4x4 resultInverse = {};
+
+	resultInverse.m[0][0] = (m.m[1][1] * m.m[2][2] * m.m[3][3] + m.m[1][2] * m.m[2][3] * m.m[3][1] + m.m[1][3] * m.m[2][1] * m.m[3][2]
+		- m.m[1][3] * m.m[2][2] * m.m[3][1] - m.m[1][2] * m.m[2][1] * m.m[3][3] - m.m[1][1] * m.m[2][3] * m.m[3][2]) / determinant;
+
+	resultInverse.m[0][1] = (-m.m[0][1] * m.m[2][2] * m.m[3][3] - m.m[0][2] * m.m[2][3] * m.m[3][1] - m.m[0][3] * m.m[2][1] * m.m[3][2]
+		+ m.m[0][3] * m.m[2][2] * m.m[3][1] + m.m[0][2] * m.m[2][1] * m.m[3][3] + m.m[0][1] * m.m[2][3] * m.m[3][2]) / determinant;
+
+	resultInverse.m[0][2] = (m.m[0][1] * m.m[1][2] * m.m[3][3] + m.m[0][2] * m.m[1][3] * m.m[3][1] + m.m[0][3] * m.m[1][1] * m.m[3][2]
+		- m.m[0][3] * m.m[1][2] * m.m[3][1] - m.m[0][2] * m.m[1][1] * m.m[3][3] - m.m[0][1] * m.m[1][3] * m.m[3][2]) / determinant;
+
+	resultInverse.m[0][3] = (-m.m[0][1] * m.m[1][2] * m.m[2][3] - m.m[0][2] * m.m[1][3] * m.m[2][1] - m.m[0][3] * m.m[1][1] * m.m[2][2]
+		+ m.m[0][3] * m.m[1][2] * m.m[2][1] + m.m[0][2] * m.m[1][1] * m.m[2][3] + m.m[0][1] * m.m[1][3] * m.m[2][2]) / determinant;
+
+
+	resultInverse.m[1][0] = (-m.m[1][0] * m.m[2][2] * m.m[3][3] - m.m[1][2] * m.m[2][3] * m.m[3][0] - m.m[1][3] * m.m[2][0] * m.m[3][2]
+		+ m.m[1][3] * m.m[2][2] * m.m[3][0] + m.m[1][2] * m.m[2][0] * m.m[3][3] + m.m[1][0] * m.m[2][3] * m.m[3][2]) / determinant;
+
+	resultInverse.m[1][1] = (m.m[0][0] * m.m[2][2] * m.m[3][3] + m.m[0][2] * m.m[2][3] * m.m[3][0] + m.m[0][3] * m.m[2][0] * m.m[3][2]
+		- m.m[0][3] * m.m[2][2] * m.m[3][0] - m.m[0][2] * m.m[2][0] * m.m[3][3] - m.m[0][0] * m.m[2][3] * m.m[3][2]) / determinant;
+
+	resultInverse.m[1][2] = (-m.m[0][0] * m.m[1][2] * m.m[3][3] - m.m[0][2] * m.m[1][3] * m.m[3][0] - m.m[0][3] * m.m[1][0] * m.m[3][2]
+		+ m.m[0][3] * m.m[1][2] * m.m[3][0] + m.m[0][2] * m.m[1][0] * m.m[3][3] + m.m[0][0] * m.m[1][3] * m.m[3][2]) / determinant;
+
+	resultInverse.m[1][3] = (m.m[0][0] * m.m[1][2] * m.m[2][3] + m.m[0][2] * m.m[1][3] * m.m[2][0] + m.m[0][3] * m.m[1][0] * m.m[2][2]
+		- m.m[0][3] * m.m[1][2] * m.m[2][0] - m.m[0][2] * m.m[1][0] * m.m[2][3] - m.m[0][0] * m.m[1][3] * m.m[2][2]) / determinant;
+
+
+	resultInverse.m[2][0] = (m.m[1][0] * m.m[2][1] * m.m[3][3] + m.m[1][1] * m.m[2][3] * m.m[3][0] + m.m[1][3] * m.m[2][0] * m.m[3][1]
+		- m.m[1][3] * m.m[2][1] * m.m[3][0] - m.m[1][1] * m.m[2][0] * m.m[3][3] - m.m[1][0] * m.m[2][3] * m.m[3][1]) / determinant;
+
+	resultInverse.m[2][1] = (-m.m[0][0] * m.m[2][1] * m.m[3][3] - m.m[0][1] * m.m[2][3] * m.m[3][0] - m.m[0][3] * m.m[2][0] * m.m[3][1]
+		+ m.m[0][3] * m.m[2][1] * m.m[3][0] + m.m[0][1] * m.m[2][0] * m.m[3][3] + m.m[0][0] * m.m[2][3] * m.m[3][1]) / determinant;
+
+	resultInverse.m[2][2] = (m.m[0][0] * m.m[1][1] * m.m[3][3] + m.m[0][1] * m.m[1][3] * m.m[3][0] + m.m[0][3] * m.m[1][0] * m.m[3][1]
+		- m.m[0][3] * m.m[1][1] * m.m[3][0] - m.m[0][1] * m.m[1][0] * m.m[3][3] - m.m[0][0] * m.m[1][3] * m.m[3][1]) / determinant;
+
+	resultInverse.m[2][3] = (-m.m[0][0] * m.m[1][1] * m.m[2][3] - m.m[0][1] * m.m[1][3] * m.m[2][0] - m.m[0][3] * m.m[1][0] * m.m[2][1]
+		+ m.m[0][3] * m.m[1][1] * m.m[2][0] + m.m[0][1] * m.m[1][0] * m.m[2][3] + m.m[0][0] * m.m[1][3] * m.m[2][1]) / determinant;
+
+
+	resultInverse.m[3][0] = (-m.m[1][0] * m.m[2][1] * m.m[3][2] - m.m[1][1] * m.m[2][2] * m.m[3][0] - m.m[1][2] * m.m[2][0] * m.m[3][1]
+		+ m.m[1][2] * m.m[2][1] * m.m[3][0] + m.m[1][1] * m.m[2][0] * m.m[3][2] + m.m[1][0] * m.m[2][2] * m.m[3][1]) / determinant;
+
+	resultInverse.m[3][1] = (m.m[0][0] * m.m[2][1] * m.m[3][2] + m.m[0][1] * m.m[2][2] * m.m[3][0] + m.m[0][2] * m.m[2][0] * m.m[3][1]
+		- m.m[0][2] * m.m[2][1] * m.m[3][0] - m.m[0][1] * m.m[2][0] * m.m[3][2] - m.m[0][0] * m.m[2][2] * m.m[3][1]) / determinant;
+
+	resultInverse.m[3][2] = (-m.m[0][0] * m.m[1][1] * m.m[3][2] - m.m[0][1] * m.m[1][2] * m.m[3][0] - m.m[0][2] * m.m[1][0] * m.m[3][1]
+		+ m.m[0][2] * m.m[1][1] * m.m[3][0] + m.m[0][1] * m.m[1][0] * m.m[3][2] + m.m[0][0] * m.m[1][2] * m.m[3][1]) / determinant;
+
+	resultInverse.m[3][3] = (m.m[0][0] * m.m[1][1] * m.m[2][2] + m.m[0][1] * m.m[1][2] * m.m[2][0] + m.m[0][2] * m.m[1][0] * m.m[2][1]
+		- m.m[0][2] * m.m[1][1] * m.m[2][0] - m.m[0][1] * m.m[1][0] * m.m[2][2] - m.m[0][0] * m.m[1][2] * m.m[2][1]) / determinant;
+
+	return resultInverse;
 }
 
 // 座標変換
@@ -132,20 +202,6 @@ Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip
 	return resultPerspectiveFov;
 }
 
-// 透視投影行列
-Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRatio, float nearClip, float farClip) {
-
-	Matrix4x4 resultPerspectiveFov = {};
-
-	resultPerspectiveFov.m[0][0] = (1 / aspectRatio) * (1 / tanf(fovY / 2));
-	resultPerspectiveFov.m[1][1] = 1 / tanf(fovY / 2);
-	resultPerspectiveFov.m[2][2] = farClip / (farClip - nearClip);
-	resultPerspectiveFov.m[2][3] = 1.0f;
-	resultPerspectiveFov.m[3][2] = -nearClip * farClip / (farClip - nearClip);
-
-	return resultPerspectiveFov;
-}
-
 // ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth) {
 
@@ -165,14 +221,16 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, f
 // 球の描画
 void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
 
-	const uint32_t kSubdivision = 6; // 分割数
-	const float kLonEvery = 180 / kSubdivision; // 経度分割1つ分の角度 30
-	const float kLatEvery = 180 / kSubdivision; // 緯度分割1つ分の角度 30
+	const float pi = 3.14f;
+
+	const uint32_t kSubdivision = 16; // 分割数
+	const float kLatEvery = pi / kSubdivision; // 経度分割1つ分の角度
+	const float kLonEvery = (2 * pi) / kSubdivision; // 緯度分割1つ分の角度
 
 	// 緯度の方向に分割 -Π/2 ~ Π/2
 	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
 
-		float lat = -M_PI / 2.0f + kLatEvery * latIndex; // 現在の緯度
+		float lat = -pi / 2.0f + kLatEvery * latIndex; // 現在の緯度
 
 		// 経度の方向に分割 0 ~ 2Π
 		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
@@ -189,15 +247,15 @@ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, con
 			};
 
 			b = {
-				(sphere.center.x + sphere.radius) * cosf(lat + (M_PI / kSubdivision)) * cosf(lon),
-				(sphere.center.y + sphere.radius) * sinf(lat + (M_PI / kSubdivision)),
-				(sphere.center.z + sphere.radius) * cosf(lat + (M_PI / kSubdivision)) * sinf(lon)
+				(sphere.center.x + sphere.radius) * cosf(lat + (pi / kSubdivision)) * cosf(lon),
+				(sphere.center.y + sphere.radius) * sinf(lat + (pi / kSubdivision)),
+				(sphere.center.z + sphere.radius) * cosf(lat + (pi / kSubdivision)) * sinf(lon)
 			};
 
 			c = {
-				(sphere.center.x + sphere.radius) * cosf(lat) * cosf(lon + ((M_PI * 2) / kSubdivision)),
+				(sphere.center.x + sphere.radius) * cosf(lat) * cosf(lon + ((pi * 2) / kSubdivision)),
 				(sphere.center.y + sphere.radius) * sinf(lat),
-				(sphere.center.z + sphere.radius) * cosf(lat) * sinf(lon + ((M_PI * 2) / kSubdivision))
+				(sphere.center.z + sphere.radius) * cosf(lat) * sinf(lon + ((pi * 2) / kSubdivision))
 			};
 
 			// a、b、cをScreen座標系まで変換
@@ -205,16 +263,28 @@ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, con
 			Matrix4x4 worldBMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, b);
 			Matrix4x4 worldCMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, c);
 
-			Matrix4x4 worldViewProjectionAMatrix = Multiply(worldAMatrix, viewProjectionMatrix);
-			Matrix4x4 worldViewProjectionBMatrix = Multiply(worldAMatrix, viewProjectionMatrix);
-			Matrix4x4 worldViewProjectionCMatrix = Multiply(worldAMatrix, viewProjectionMatrix);
+			Matrix4x4 wvpAMatrix = Multiply(worldAMatrix, viewProjectionMatrix);
+			Matrix4x4 wvpBMatrix = Multiply(worldBMatrix, viewProjectionMatrix);
+			Matrix4x4 wvpCMatrix = Multiply(worldCMatrix, viewProjectionMatrix);
 
-			Vector3 ndcAMatrix = Transform(a, worldViewProjectionAMatrix);
-			Vector3 ndcBMatrix = Transform(b, worldViewProjectionBMatrix);
-			Vector3 ndcCMatrix = Transform(c, worldViewProjectionCMatrix);
+			Vector3 ndcAVertex = Transform(a, wvpAMatrix);
+			Vector3 ndcBVertex = Transform(b, wvpBMatrix);
+			Vector3 ndcCVertex = Transform(c, wvpCMatrix);
+
+			Vector3 ScreenAVertex = Transform(ndcAVertex, viewportMatrix);
+			Vector3 ScreenBVertex = Transform(ndcBVertex, viewportMatrix);
+			Vector3 ScreenCVertex = Transform(ndcCVertex, viewportMatrix);
 
 			// ab、bcで線を引く
-			Novice::DrawLine()
+			Novice::DrawLine(
+				int(ScreenAVertex.x), int(ScreenAVertex.y),
+				int(ScreenBVertex.x), int(ScreenBVertex.y),
+				color);
+
+			Novice::DrawLine(
+				int(ScreenAVertex.x), int(ScreenAVertex.y),
+				int(ScreenCVertex.x), int(ScreenCVertex.y),
+				color);
 		}
 	}
 }
@@ -229,8 +299,76 @@ void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMa
 	// 奥から手前への線を順々にに引いていく
 	for (uint32_t xIndex = 0; xIndex <= kSubdivision; ++xIndex) {
 
+		//上の情報を使ってワールド座標系上の始点と終点を求める
+		Vector3 startX{ xIndex * kGridEvery - kGridHalfWidth,0,2 };
+		Vector3 endX{ xIndex * kGridEvery - kGridHalfWidth,0,-2 };
+
+		// start、endをScreen座標系まで変換
+		Matrix4x4 worldStartMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, startX);
+		Matrix4x4 worldEndMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, endX);
+
+		Matrix4x4 wvpStartMatrix = Multiply(worldStartMatrix, viewProjectionMatrix);
+		Matrix4x4 wvpEndMatrix = Multiply(worldEndMatrix, viewProjectionMatrix);
+
+		Vector3 ndcStartVertex = Transform(startX, wvpStartMatrix);
+		Vector3 ndcEndVertex = Transform(endX, wvpEndMatrix);
+
+		Vector3 ScreenStartVertex = Transform(ndcStartVertex, viewportMatrix);
+		Vector3 ScreenEndVertex = Transform(ndcEndVertex, viewportMatrix);
+
+		//変換した座標を使って表示、色は薄い灰色(0xAAAAAAFF)。原点は黒
+		if (xIndex == kSubdivision / 2) {
+
+			Novice::DrawLine(
+				int(ScreenStartVertex.x), int(ScreenStartVertex.y),
+				int(ScreenEndVertex.x), int(ScreenEndVertex.y),
+				BLACK);
+		}
+
+		Novice::DrawLine(
+			int(ScreenStartVertex.x), int(ScreenStartVertex.y),
+			int(ScreenEndVertex.x), int(ScreenEndVertex.y),
+			0xAAAAAAFF);
+	}
+
+	// 左から右も同じように順々に引いていく
+	for (uint32_t zIndex = 0; zIndex <= kSubdivision; ++zIndex) {
+
+		//奥から手前が左右に変わるだけ
+		Vector3 startZ{ 2,0,zIndex * kGridEvery - kGridHalfWidth };
+		Vector3 endZ{ -2,0,zIndex * kGridEvery - kGridHalfWidth };
+
+		// start、endをScreen座標系まで変換
+		Matrix4x4 worldStartZMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, startZ);
+		Matrix4x4 worldEndZMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, { 0.0f,0.0f,0.0f }, endZ);
+
+		Matrix4x4 wvpStartZMatrix = Multiply(worldStartZMatrix, viewProjectionMatrix);
+		Matrix4x4 wvpEndZMatrix = Multiply(worldEndZMatrix, viewProjectionMatrix);
+
+		Vector3 ndcStartZVertex = Transform(startZ, wvpStartZMatrix);
+		Vector3 ndcEndZVertex = Transform(endZ, wvpEndZMatrix);
+
+		Vector3 ScreenStartZVertex = Transform(ndcStartZVertex, viewportMatrix);
+		Vector3 ScreenEndZVertex = Transform(ndcEndZVertex, viewportMatrix);
+
+		//変換した座標を使って表示、色は薄い灰色(0xAAAAAAFF)。原点は黒
+		if (zIndex == kSubdivision / 2) {
+
+			Novice::DrawLine(
+				int(ScreenStartZVertex.x), int(ScreenStartZVertex.y),
+				int(ScreenEndZVertex.x), int(ScreenEndZVertex.y),
+				BLACK);
+		}
+
+		Novice::DrawLine(
+			int(ScreenStartZVertex.x), int(ScreenStartZVertex.y),
+			int(ScreenEndZVertex.x), int(ScreenEndZVertex.y),
+			0xAAAAAAFF);
 	}
 }
+
+static const int kWindowWidth = 1280;
+static const int kWindowHeight = 720;
 
 const char kWindowTitle[] = "LE2B_01_アキモト_ワタル";
 
@@ -238,7 +376,21 @@ const char kWindowTitle[] = "LE2B_01_アキモト_ワタル";
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// ライブラリの初期化
-	Novice::Initialize(kWindowTitle, 1280, 720);
+	Novice::Initialize(kWindowTitle, kWindowWidth, kWindowHeight);
+
+	Vector3 cameraTranslate{ 0.0f,1.9f,-6.49f };
+	Vector3 cameraRotate{ 0.26f,0.0f,0.0f };
+
+	Sphere sphere{
+		{0.0f,0.0f,0.0f},
+		0.5f,
+	};
+
+	Matrix4x4 cameraMatrix{};
+	Matrix4x4 viewMatrix{};
+	Matrix4x4 projectionMatrix{};
+	Matrix4x4 viewProjectionMatrix{};
+	Matrix4x4 viewportMatrix{};
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -257,6 +409,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
+		ImGui::Begin("Window");
+		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x, 0.01f);
+		ImGui::DragFloat3("CameraRotate", &cameraRotate.x, 0.01f);
+		ImGui::DragFloat3("SphereCenter", &sphere.center.x, 0.01f);
+		ImGui::DragFloat("SphereRadius", &sphere.radius, 0.01f);
+		ImGui::End();
+
+		cameraMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
+		viewMatrix = Inverse(cameraMatrix);
+		projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
+		viewProjectionMatrix = Multiply(viewMatrix, projectionMatrix);
+		viewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
+
 		///
 		/// ↑更新処理ここまで
 		///
@@ -264,6 +429,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓描画処理ここから
 		///
+
+		DrawGrid(viewProjectionMatrix, viewportMatrix);
+		DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, 0x000000ff);
 
 		///
 		/// ↑描画処理ここまで
