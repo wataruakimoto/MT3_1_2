@@ -221,16 +221,14 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, f
 // 球の描画
 void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
 
-	const float pi = 3.14f;
-
 	const uint32_t kSubdivision = 16; // 分割数
-	const float kLatEvery = pi / kSubdivision; // 経度分割1つ分の角度
-	const float kLonEvery = (2 * pi) / kSubdivision; // 緯度分割1つ分の角度
+	const float kLatEvery = (float)M_PI / kSubdivision; // 経度分割1つ分の角度
+	const float kLonEvery = (2 * (float)M_PI) / kSubdivision; // 緯度分割1つ分の角度
 
 	// 緯度の方向に分割 -Π/2 ~ Π/2
 	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
 
-		float lat = -pi / 2.0f + kLatEvery * latIndex; // 現在の緯度
+		float lat = -(float)M_PI / 2.0f + kLatEvery * latIndex; // 現在の緯度
 
 		// 経度の方向に分割 0 ~ 2Π
 		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
@@ -241,21 +239,21 @@ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, con
 			Vector3 a, b, c;
 
 			a = {
-				(sphere.center.x + sphere.radius) * cosf(lat) * cosf(lon),
-				(sphere.center.y + sphere.radius) * sinf(lat),
-				(sphere.center.z + sphere.radius) * cosf(lat) * sinf(lon)
+				sphere.center.x + sphere.radius * cosf(lat) * cosf(lon),
+				sphere.center.y + sphere.radius * sinf(lat),
+				sphere.center.z + sphere.radius * cosf(lat) * sinf(lon)
 			};
 
 			b = {
-				(sphere.center.x + sphere.radius) * cosf(lat + (pi / kSubdivision)) * cosf(lon),
-				(sphere.center.y + sphere.radius) * sinf(lat + (pi / kSubdivision)),
-				(sphere.center.z + sphere.radius) * cosf(lat + (pi / kSubdivision)) * sinf(lon)
+				sphere.center.x + sphere.radius * cosf(lat + kLatEvery) * cosf(lon),
+				sphere.center.y + sphere.radius * sinf(lat + kLatEvery),
+				sphere.center.z + sphere.radius * cosf(lat + kLatEvery) * sinf(lon)
 			};
 
 			c = {
-				(sphere.center.x + sphere.radius) * cosf(lat) * cosf(lon + ((pi * 2) / kSubdivision)),
-				(sphere.center.y + sphere.radius) * sinf(lat),
-				(sphere.center.z + sphere.radius) * cosf(lat) * sinf(lon + ((pi * 2) / kSubdivision))
+				sphere.center.x + sphere.radius * cosf(lat) * cosf(lon + kLonEvery),
+				sphere.center.y + sphere.radius * sinf(lat),
+				sphere.center.z + sphere.radius * cosf(lat) * sinf(lon + kLonEvery)
 			};
 
 			// a、b、cをScreen座標系まで変換
@@ -271,19 +269,19 @@ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, con
 			Vector3 ndcBVertex = Transform(b, wvpBMatrix);
 			Vector3 ndcCVertex = Transform(c, wvpCMatrix);
 
-			Vector3 ScreenAVertex = Transform(ndcAVertex, viewportMatrix);
-			Vector3 ScreenBVertex = Transform(ndcBVertex, viewportMatrix);
-			Vector3 ScreenCVertex = Transform(ndcCVertex, viewportMatrix);
+			Vector3 screenAVertex = Transform(ndcAVertex, viewportMatrix);
+			Vector3 screenBVertex = Transform(ndcBVertex, viewportMatrix);
+			Vector3 screenCVertex = Transform(ndcCVertex, viewportMatrix);
 
 			// ab、bcで線を引く
 			Novice::DrawLine(
-				int(ScreenAVertex.x), int(ScreenAVertex.y),
-				int(ScreenBVertex.x), int(ScreenBVertex.y),
+				int(screenAVertex.x), int(screenAVertex.y),
+				int(screenBVertex.x), int(screenBVertex.y),
 				color);
 
 			Novice::DrawLine(
-				int(ScreenAVertex.x), int(ScreenAVertex.y),
-				int(ScreenCVertex.x), int(ScreenCVertex.y),
+				int(screenAVertex.x), int(screenAVertex.y),
+				int(screenCVertex.x), int(screenCVertex.y),
 				color);
 		}
 	}
@@ -313,21 +311,21 @@ void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMa
 		Vector3 ndcStartVertex = Transform(startX, wvpStartMatrix);
 		Vector3 ndcEndVertex = Transform(endX, wvpEndMatrix);
 
-		Vector3 ScreenStartVertex = Transform(ndcStartVertex, viewportMatrix);
-		Vector3 ScreenEndVertex = Transform(ndcEndVertex, viewportMatrix);
+		Vector3 screenStartVertex = Transform(ndcStartVertex, viewportMatrix);
+		Vector3 screenEndVertex = Transform(ndcEndVertex, viewportMatrix);
 
 		//変換した座標を使って表示、色は薄い灰色(0xAAAAAAFF)。原点は黒
 		if (xIndex == kSubdivision / 2) {
 
 			Novice::DrawLine(
-				int(ScreenStartVertex.x), int(ScreenStartVertex.y),
-				int(ScreenEndVertex.x), int(ScreenEndVertex.y),
+				int(screenStartVertex.x), int(screenStartVertex.y),
+				int(screenEndVertex.x), int(screenEndVertex.y),
 				BLACK);
 		}
 
 		Novice::DrawLine(
-			int(ScreenStartVertex.x), int(ScreenStartVertex.y),
-			int(ScreenEndVertex.x), int(ScreenEndVertex.y),
+			int(screenStartVertex.x), int(screenStartVertex.y),
+			int(screenEndVertex.x), int(screenEndVertex.y),
 			0xAAAAAAFF);
 	}
 
